@@ -5,4 +5,12 @@ project(legacy_ble_serial_scanner)
 
 add_subdirectory(components/crc_compute)
 
-target_sources(app PRIVATE src/main.c)
+target_include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_sources(app PRIVATE
+    src/main.c
+    src/scanner.c
+    src/worker.c
+    src/crypto_util.c
+    src/packet.c
+)
