@@ -41,7 +41,7 @@ static void device_found(const bt_addr_le_t *addr, int8_t rssi,
             } else {
                 struct decrypt_job job;
                 job.flags_raw = raw[0];
-                memcpy(job.encrypted, &raw[1], ENCRYPTED_DATA_SIZE_BYTES);
+                memcpy(job.encrypted, &raw[3], ENCRYPTED_DATA_SIZE_BYTES);
                 job.rssi = rssi;
                 memcpy(&job.addr, addr, sizeof(bt_addr_le_t));
 

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define PAYLOAD_FRAME_LENGTH 18
+#define PAYLOAD_FRAME_LENGTH 20
 #define ENCRYPTED_DATA_SIZE_BYTES 16
 
 typedef union {
