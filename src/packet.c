@@ -19,6 +19,7 @@ void print_decoded_packet(const ble_pkt_encrypted_data_t *pkt,
     printk("Payload Len: %u\n", flags->bits.payload_length);
     printk("Encrypt Status: %u\n", flags->bits.encrypt_status);
     printk("Power Status: %u\n", flags->bits.self_external_power);
+    printk("Flags %u\n", flags->raw);
 
     printk("Payload: ");
     for (size_t i = 0; i < sizeof(pkt->fields.payload); ++i) {
