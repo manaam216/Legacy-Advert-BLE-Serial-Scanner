@@ -32,7 +32,6 @@ jobs:
         run: |
           export PATH=$PATH:${HOME}/.local/bin
           west init -l $PROJECT_DIR
-          west update -n
           apt-get update -y && apt-get install -y build-essential
 
       - name: 🏗️ Build firmware
