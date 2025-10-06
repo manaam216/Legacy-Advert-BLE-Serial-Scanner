@@ -1,35 +1,51 @@
-name: 🧠 Zephyr BLE Scanner CI (NCS Docker)
+name: 🧠 BLE Scanner CI (NCS Docker v2.7.0)
 
 on:
   push:
-    branches: [ main, master, test ]
+    branches: [ "test" ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ "main" ]
 
 jobs:
-  build:
-    name: Build with NCS Docker
-    runs-on: ubuntu-latest
-
+  build-ble-scanner:
+    runs-on: ubuntu-22.04
     container:
-      image: nordicsemiconductor/nrfconnect-sdk:latest
-      options: --user root  # run as root for file access
+      image: ghcr.io/nrfconnect/sdk-nrf-toolchain:latest
+      options: --user root  # ensure file permissions work properly
+
+    defaults:
+      run:
+        shell: bash
 
     env:
+      PROJECT_DIR: legacy_ble_serial_scanner
       BOARD: nrf52840dk_nrf52840
 
     steps:
-      - name: 🧩 Checkout repository
+      - name: 🧩 Checkout BLE Scanner project
         uses: actions/checkout@v4
+        with:
+          path: ${{ env.PROJECT_DIR }}
 
-      - name: 🏗️ Build application with West
+      - name: ⚙️ Prepare west workspace
         run: |
-          echo "Using NCS Docker image: $(west --version)"
-          west build -b $BOARD -d build/ .
+          export PATH=$PATH:${HOME}/.local/bin
+          west init -l $PROJECT_DIR
+          west update -o=--depth=1 -n
+          apt-get update -y && apt-get install -y build-essential
+
+      - name: 🏗️ Build firmware
+        run: |
+          cd $PROJECT_DIR
+          west build --build-dir build . --pristine \
+            -DBOARD_ROOT=. \
+            -DNCS_TOOLCHAIN_VERSION=NONE \
+            -DCONF_FILE=prj.conf \
+            --board $BOARD
           ls -lh build/zephyr/zephyr.*
 
-      - name: 📦 Upload build artifacts
+      - name: 📦 Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ env.BOARD }}
-          path: build/zephyr/zephyr.*
+          name: ble_scanner_firmware_${{ env.BOARD }}
+          path: ${{ env.PROJECT_DIR }}/build/zephyr/zephyr.*
