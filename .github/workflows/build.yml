@@ -10,7 +10,7 @@ jobs:
   build-ble-scanner:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/nrfconnect/sdk-nrf-toolchain:v2.7.0
+      image: ghcr.io/nrfconnect/sdk-nrf-toolchain:latest
       options: --user root
 
     defaults:
