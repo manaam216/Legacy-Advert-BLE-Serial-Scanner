@@ -2,7 +2,7 @@ name: 🧠 BLE Scanner CI (NCS Docker v2.7.0)
 
 on:
   push:
-    branches: [ "test" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
