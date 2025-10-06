@@ -5,14 +5,14 @@ manifest:
 
   # External dependencies (Zephyr + NCS modules)
   remotes:
-    - name: nrfconnect
+    - name: nordic
       url-base: https://github.com/nrfconnect
 
   projects:
 
     # nRF Connect SDK base (includes Zephyr fork and Nordic libraries)
-    - name: nrf
-      remote: nrfconnect
+    - name: sdk-nrf
+      remote: nordic
       revision: main
       path: nrf
       import: true
