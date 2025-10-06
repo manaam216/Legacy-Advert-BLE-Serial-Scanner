@@ -19,8 +19,6 @@ jobs:
 
     env:
       PROJECT_DIR: legacy_ble_serial_scanner
-      BOARD: nrf52840dk_nrf52840
-      OVERLAY_FILE: nrf52840dk_nrf52840.overlay
 
     steps:
       - name: 🧩 Checkout BLE Scanner project
@@ -45,9 +43,8 @@ jobs:
         run: |
           cd $PROJECT_DIR
           west build --build-dir build . --pristine \
-            -DDTC_OVERLAY_FILE=${OVERLAY_FILE} \
-            -DCONF_FILE=prj.conf \
-            --board $BOARD
+            --board nrf52840dk/nrf52840 --no-sysbuild -- -DCONF_FILE="prj.conf"\
+            -DDTC_OVERLAY_FILE=nrf52840dk_nrf52840.overlay
           ls -lh build/zephyr/zephyr.*
 
       - name: 📦 Upload build artifact
