@@ -1,6 +1,4 @@
 manifest:
-  version: 0.13
-
   # Your project is the main application
   self:
     path: legacy_ble_serial_scanner
@@ -9,34 +7,8 @@ manifest:
   remotes:
     - name: nrfconnect
       url-base: https://github.com/nrfconnect
-    - name: zephyrproject
-      url-base: https://github.com/zephyrproject-rtos
 
   projects:
-    # Zephyr RTOS core
-    - name: zephyr
-      remote: zephyrproject
-      revision: main
-      import:
-        path-prefix: deps
-        name-allowlist:
-          - cmsis
-          - hal_nordic
-          - hal_stm32
-          - hal_atmel
-          - hal_microchip
-          - hal_esp32
-          - hal_silabs
-          - tinycrypt
-          - mcuboot
-          - mbedtls
-          - segger
-          - loramac-node
-          - littlefs
-          - nanopb
-          - zcbor
-          - canopennode
-          - fatfs
 
     # nRF Connect SDK base (includes Zephyr fork and Nordic libraries)
     - name: nrf
