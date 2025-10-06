@@ -10,8 +10,8 @@ jobs:
   build-ble-scanner:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/nrfconnect/sdk-nrf-toolchain:latest
-      options: --user root  # ensure file permissions work properly
+      image: ghcr.io/nrfconnect/sdk-nrf-toolchain:v2.7.0
+      options: --user root
 
     defaults:
       run:
@@ -20,6 +20,7 @@ jobs:
     env:
       PROJECT_DIR: legacy_ble_serial_scanner
       BOARD: nrf52840dk_nrf52840
+      OVERLAY_FILE: nrf52840dk_nrf52840.overlay
 
     steps:
       - name: 🧩 Checkout BLE Scanner project
@@ -31,14 +32,14 @@ jobs:
         run: |
           export PATH=$PATH:${HOME}/.local/bin
           west init -l $PROJECT_DIR
-          git config --global url."https://${{ secrets.GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
-          west update -o=--depth=1 -n
+          west update -n
           apt-get update -y && apt-get install -y build-essential
 
       - name: 🏗️ Build firmware
         run: |
           cd $PROJECT_DIR
           west build --build-dir build . --pristine \
+            -DDTC_OVERLAY_FILE=${OVERLAY_FILE} \
             -DBOARD_ROOT=. \
             -DNCS_TOOLCHAIN_VERSION=NONE \
             -DCONF_FILE=prj.conf \
