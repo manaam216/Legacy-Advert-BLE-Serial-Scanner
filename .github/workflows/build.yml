@@ -1,0 +1,54 @@
+name: 🧠 BLE Scanner CI (NCS Docker v2.7.0)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-ble-scanner:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/nrfconnect/sdk-nrf-toolchain:latest
+      options: --user root
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      PROJECT_DIR: legacy_ble_serial_scanner
+
+    steps:
+      - name: 🧩 Checkout BLE Scanner project
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.PROJECT_DIR }}
+
+      - name: 🔑 Configure Git for nRF repos
+        run: |
+          # Replace HTTPS URLs for nRF repos with your PAT
+          git config --global url."https://${{ secrets.NCS_PAT }}:x-oauth-basic@github.com/nrfconnect/".insteadOf "https://github.com/nrfconnect/"
+
+      - name: ⚙️ Prepare west workspace
+        run: |
+          export PATH=$PATH:${HOME}/.local/bin
+          west init -l $PROJECT_DIR
+          west update -o=--depth=1 -n   # fetch using PAT
+          west zephyr-export
+          apt-get update -y && apt-get install -y build-essential
+
+      - name: 🏗️ Build firmware
+        run: |
+          cd $PROJECT_DIR
+          west build --build-dir build . --pristine \
+            --board nrf52840dk/nrf52840 --no-sysbuild -- -DCONF_FILE="prj.conf"\
+            -DDTC_OVERLAY_FILE=nrf52840dk_nrf52840.overlay
+          ls -lh build/zephyr/zephyr.*
+
+      - name: 📦 Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ble_scanner_firmware_${{ env.BOARD }}
+          path: ${{ env.PROJECT_DIR }}/build/zephyr/zephyr.*

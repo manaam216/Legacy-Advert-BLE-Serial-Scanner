@@ -1,0 +1,18 @@
+manifest:
+  # Your project is the main application
+  self:
+    path: legacy_ble_serial_scanner
+
+  # External dependencies (Zephyr + NCS modules)
+  remotes:
+    - name: nordic
+      url-base: https://github.com/nrfconnect
+
+  projects:
+
+    # nRF Connect SDK base (includes Zephyr fork and Nordic libraries)
+    - name: sdk-nrf
+      remote: nordic
+      revision: main
+      path: nrf
+      import: true
