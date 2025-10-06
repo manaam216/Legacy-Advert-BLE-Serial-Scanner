@@ -1,4 +1,4 @@
-name: 🧠 Zephyr BLE Scanner CI
+name: 🧠 Zephyr BLE Scanner CI (NCS Docker)
 
 on:
   push:
@@ -8,35 +8,23 @@ on:
 
 jobs:
   build:
-    name: Build on Ubuntu (nRF52840 DK)
+    name: Build with NCS Docker
     runs-on: ubuntu-latest
 
+    container:
+      image: nordicsemiconductor/nrfconnect-sdk:latest
+      options: --user root  # run as root for file access
+
     env:
-      ZEPHYR_BASE: ${{ github.workspace }}/zephyr
       BOARD: nrf52840dk_nrf52840
 
     steps:
       - name: 🧩 Checkout repository
         uses: actions/checkout@v4
 
-      - name: ⚙️ Install dependencies
+      - name: 🏗️ Build application with West
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            python3-pip cmake ninja-build gperf \
-            ccache dfu-util device-tree-compiler wget \
-            xz-utils file make gcc g++ python3-dev
-
-      - name: 🧱 Install West and Zephyr
-        run: |
-          pip install west
-          west init -l .
-          west update
-          west zephyr-export
-          pip install -r zephyr/scripts/requirements.txt
-
-      - name: 🏗️ Build application
-        run: |
+          echo "Using NCS Docker image: $(west --version)"
           west build -b $BOARD -d build/ .
           ls -lh build/zephyr/zephyr.*
 
