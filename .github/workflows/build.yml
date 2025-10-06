@@ -1,0 +1,47 @@
+name: 🧠 Zephyr BLE Scanner CI
+
+on:
+  push:
+    branches: [ main, master, test ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build on Ubuntu (nRF52840 DK)
+    runs-on: ubuntu-latest
+
+    env:
+      ZEPHYR_BASE: ${{ github.workspace }}/zephyr
+      BOARD: nrf52840dk_nrf52840
+
+    steps:
+      - name: 🧩 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            python3-pip cmake ninja-build gperf \
+            ccache dfu-util device-tree-compiler wget \
+            xz-utils file make gcc g++ python3-dev
+
+      - name: 🧱 Install West and Zephyr
+        run: |
+          pip install west
+          west init -l .
+          west update
+          west zephyr-export
+          pip install -r zephyr/scripts/requirements.txt
+
+      - name: 🏗️ Build application
+        run: |
+          west build -b $BOARD -d build/ .
+          ls -lh build/zephyr/zephyr.*
+
+      - name: 📦 Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ env.BOARD }}
+          path: build/zephyr/zephyr.*
