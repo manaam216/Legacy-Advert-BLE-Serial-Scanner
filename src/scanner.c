@@ -40,7 +40,7 @@ static void device_found(const bt_addr_le_t *addr, int8_t rssi,
                 LOG_WRN("CRC mismatch from %p", addr);
             } else {
                 struct decrypt_job job;
-                job.flags_raw = raw[0];
+                job.flags_raw = raw[2];
                 memcpy(job.encrypted, &raw[3], ENCRYPTED_DATA_SIZE_BYTES);
                 job.rssi = rssi;
                 memcpy(&job.addr, addr, sizeof(bt_addr_le_t));
