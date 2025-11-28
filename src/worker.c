@@ -36,9 +36,8 @@ static void decrypt_worker(void *a, void *b, void *c)
             if (dec_len == ENCRYPTED_DATA_SIZE_BYTES) {
                 ble_pkt_encrypted_data_t packet;
                 memcpy(packet.data_bytes, decrypted, ENCRYPTED_DATA_SIZE_BYTES);
-
-                printk("\nDecoded frame from %s (RSSI %d)\n", addr_str, job.rssi);
                 print_decoded_packet(&packet, &flags);
+
             } else {
                 printk("Decryption failed (addr %s, rssi %d)\n", addr_str, job.rssi);
             }
