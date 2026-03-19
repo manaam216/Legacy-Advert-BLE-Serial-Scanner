@@ -3,70 +3,72 @@
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/hci.h>
 #include <zephyr/net_buf.h>
+#include <zephyr/sys/printk.h>
 #include <string.h>
-#include <crc_compute.h>
+
 #include "scanner.h"
-#include "worker.h"
-#include "packet.h"
 
 LOG_MODULE_REGISTER(scanner, LOG_LEVEL_INF);
 
-static void device_found(const bt_addr_le_t *addr, int8_t rssi,
-                         uint8_t adv_type, struct net_buf_simple *ad)
+static void device_found(const bt_addr_le_t *addr,
+                         int8_t rssi,
+                         uint8_t adv_type,
+                         struct net_buf_simple *ad)
 {
-    struct net_buf_simple_state state;
-    uint8_t ad_type, ad_len;
-    uint8_t *ad_ptr;
+    char name[32] = {0};
+    const uint8_t *mfg = NULL;
+    uint8_t mfg_len = 0;
 
-    net_buf_simple_save(ad, &state);
+    ARG_UNUSED(adv_type);
 
-    while (ad->len > 0) {
+    while (ad->len > 1U) {
         uint8_t len = net_buf_simple_pull_u8(ad);
-        if (len == 0) {
+
+        if (len == 0U || ad->len < len) {
             break;
         }
 
-        ad_type = net_buf_simple_pull_u8(ad);
-        ad_len  = len - 1;
-        ad_ptr  = ad->data;
+        uint8_t type = net_buf_simple_pull_u8(ad);
+        uint8_t data_len = len - 1U;
+        uint8_t *data = ad->data;
 
-        if (ad_len == PAYLOAD_FRAME_LENGTH && ad_type == BT_DATA_MANUFACTURER_DATA) {
-            const uint8_t *raw = ad_ptr;
-
-            uint8_t crc_rx   = raw[ad_len - 1];
-            uint8_t crc_calc = compute_crc(CRC_TYPE_8, (uint8_t *)raw, ad_len - 1);
-
-            if (crc_rx != crc_calc) {
-                LOG_WRN("CRC mismatch from %p", addr);
-            } else {
-                struct decrypt_job job;
-                job.flags_raw = raw[2];
-                memcpy(job.encrypted, &raw[3], ENCRYPTED_DATA_SIZE_BYTES);
-                job.rssi = rssi;
-                memcpy(&job.addr, addr, sizeof(bt_addr_le_t));
-
-                if (enqueue_job(&job) != 0) {
-                    LOG_WRN("Decrypt queue full, dropping frame");
-                }
-            }
+        if ((type == BT_DATA_NAME_COMPLETE || type == BT_DATA_NAME_SHORTENED) &&
+            data_len > 0U) {
+            uint8_t copy_len = (data_len < sizeof(name) - 1U) ? data_len : (sizeof(name) - 1U);
+            memcpy(name, data, copy_len);
+            name[copy_len] = '\0';
+        } else if (type == BT_DATA_MANUFACTURER_DATA) {
+            mfg = data;
+            mfg_len = data_len;
         }
-        net_buf_simple_pull(ad, ad_len);
+
+        net_buf_simple_pull(ad, data_len);
     }
 
-    net_buf_simple_restore(ad, &state);
+    printk("MAC:%02X:%02X:%02X:%02X:%02X:%02X RSSI:%d Name:%s MFG:",
+           addr->a.val[5], addr->a.val[4], addr->a.val[3],
+           addr->a.val[2], addr->a.val[1], addr->a.val[0],
+           rssi,
+           name[0] ? name : "N/A");
+
+    if (mfg && mfg_len) {
+        for (uint8_t i = 0; i < mfg_len; i++) {
+            printk("%02X", mfg[i]);
+        }
+    } else {
+        printk("N/A");
+    }
+
+    printk("\n");
 }
 
 int scanner_start(void)
 {
-    int err;
-
-    err = bt_enable(NULL);
+    int err = bt_enable(NULL);
     if (err) {
         LOG_ERR("Bluetooth init failed (err %d)", err);
         return err;
     }
-
-    LOG_INF("Bluetooth initialized");
 
     static const struct bt_le_scan_param scan_param = {
         .type     = BT_LE_SCAN_TYPE_PASSIVE,
@@ -81,6 +83,6 @@ int scanner_start(void)
         return err;
     }
 
-    LOG_INF("Scanning started");
+    printk("Scanning started\n");
     return 0;
 }
