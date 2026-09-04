@@ -45,11 +45,7 @@ static void device_found(const bt_addr_le_t *addr,
         net_buf_simple_pull(ad, data_len);
     }
 
-    printk("MAC:%02X:%02X:%02X:%02X:%02X:%02X RSSI:%d Name:%s MFG:",
-           addr->a.val[5], addr->a.val[4], addr->a.val[3],
-           addr->a.val[2], addr->a.val[1], addr->a.val[0],
-           rssi,
-           name[0] ? name : "N/A");
+
 
     if (mfg && mfg_len) {
         for (uint8_t i = 0; i < mfg_len; i++) {
